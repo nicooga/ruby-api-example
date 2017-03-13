@@ -19,6 +19,10 @@ end
 class RSpecConstants
 end
 
+Mail.defaults do
+  delivery_method :test
+end
+
 module RSpecHelpers
   include Rack::Test::Methods
 
@@ -38,18 +42,6 @@ module RSpecHelpers
     scope = Api.new
     scope.instance_variable_set(:@current_user, opts[:as_user])
     scope
-  end
-end
-
-class Api
-  helpers do
-    def current_user
-      begin
-        @current_user = Api.class_variable_get(:@@current_user)
-      rescue
-        nil
-      end
-    end
   end
 end
 

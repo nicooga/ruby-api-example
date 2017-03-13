@@ -8,6 +8,8 @@ require 'config/variables'
 if %w(development test).include?(RACK_ENV)
   require 'pry'
   require 'awesome_print'
+  require 'dotenv'
+  Dotenv.load(".env.#{RACK_ENV}")
 end
 
 require 'bundler'
@@ -22,6 +24,7 @@ class Api < Grape::API; end
 require 'config/sequel'
 require 'config/hanami'
 require 'config/grape'
+require 'config/mail'
 
 # require some global libs
 require 'lib/core_ext'
@@ -34,29 +37,51 @@ require 'active_support/core_ext'
 
 # require all models
 Dir['./application/models/*.rb'].each { |rb| require rb }
-
+Dir['./application/validators/*.rb'].each { |rb| require rb }
+Dir['./application/mailers/**/*.rb'].each { |rb| require rb }
 Dir['./application/api_helpers/**/*.rb'].each { |rb| require rb }
+
 class Api < Grape::API
   version 'v1.0', using: :path
   content_type :json, 'application/json'
   default_format :json
   prefix :api
-  rescue_from Grape::Exceptions::ValidationErrors do |e|
-    ret = { error_type: 'validation', errors: {} }
-    e.each do |x, err|
-      ret[:errors][x[0]] ||= []
-      ret[:errors][x[0]] << err.message
+
+  helpers do
+    # Got to this because Hanami::Validations only accepts
+    # symbol keys, unless for declared attributes.
+    # See https://github.com/hanami/validations/issues/20
+    def permit_attributes(keys)
+      params
+        .fetch(:attributes, {})
+        .slice(*keys)
+        .symbolize_keys
     end
-    error! ret, 400
+
+    def handling_validation(v)
+      result = v.validate
+
+      if result.success?
+        yield
+      else
+        raise Api::ValidationError.new(result.errors)
+      end
+    end
+  end
+
+  rescue_from Api::ValidationError do |e|
+    data = { error_type: 'validations', errors: e.errors }
+    error!(data, 422)
+  end
+
+  rescue_from Api::AuthenticationError do |e|
+    data = { error_type: 'authentication', errors: e.message }
+    error!(data, 401)
   end
 
   helpers SharedParams
   helpers ApiResponse
   include Auth
-
-  before do
-    authenticate!
-  end
 
   Dir['./application/api_entities/**/*.rb'].each { |rb| require rb }
   Dir['./application/api/**/*.rb'].each { |rb| require rb }

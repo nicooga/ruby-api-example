@@ -1,3 +1,5 @@
+require 'jwt'
+
 class Api
   module Auth
     extend ActiveSupport::Concern
@@ -7,12 +9,22 @@ class Api
     end
 
     module HelperMethods
+      def generate_token(user)
+        JWT.encode({user_id: user.id}, SECRET, 'none')
+      end
+
       def authenticate!
-        # Library to authenticate user can go here
+        return if current_user.present?
+        raise Api::AuthenticationError.new('Authentication failed')
       end
 
       def current_user
-        @current_user
+        return unless (token_header = headers['Access-Token']).present?
+        match = token_header.match(/(Bearer\s)?(.*)/)
+        token = match && match[2]
+        return unless token
+        payload, _ = JWT.decode(token, SECRET, false)
+        Api::Models::User.find id: payload.fetch('user_id')
       end
     end
   end

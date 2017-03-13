@@ -1,4 +1,5 @@
 require 'sequel'
+require 'hanami/validations'
 
 Sequel.database_timezone = :local
 
@@ -21,6 +22,9 @@ Sequel::Model.add_input_transformer(:to_nil){|v| v.is_a?(String) && v == '' ? ni
 
 # Auto-manage created_at/updated_at fields
 Sequel::Model.plugin :timestamps, update_on_create: true
+
+# Disable strict mass assignment
+Sequel::Model.strict_param_setting = false
 
 Sequel.extension :connection_validator
 Sequel.extension :migration
@@ -82,7 +86,6 @@ module Sequel
       end
       ret
     end
-
   end
 end
 

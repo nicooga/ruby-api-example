@@ -2,6 +2,7 @@ ruby '2.3.1'
 
 source 'https://rubygems.org'
 
+gem 'pg'
 gem 'thin', '1.7.0'
 gem 'rack', '1.6.4'
 gem 'rerun', '0.11.0'
@@ -20,8 +21,10 @@ gem 'hanami-validations', '0.6.0' # form validation
 gem 'dry-validation', '0.10.4' # validation methods for reform
 gem 'ability_list', '0.0.4'
 gem 'activesupport', '5.0.0'
+gem 'jwt'
 
 group :development, :test do
+  gem 'dotenv'
   gem 'awesome_print', '1.7.0'
   gem 'pry', '0.10.4'
 end
