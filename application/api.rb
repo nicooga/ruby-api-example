@@ -80,6 +80,11 @@ class Api < Grape::API
     error!(data, 401)
   end
 
+  rescue_from Api::AuthorizationError do |e|
+    data = { error_type: 'authorization', errors: e.message }
+    error!(data, 403)
+  end
+
   helpers SharedParams
   helpers ApiResponse
   include Auth

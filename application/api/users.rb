@@ -8,9 +8,7 @@ class Api
 
     get do
       users = SEQUEL_DB[:users].all
-      {
-        data: users
-      }
+      { data: users }
     end
 
     desc "Creates a new user",
@@ -44,6 +42,7 @@ class Api
 
       put do
         user = Api::Models::User.find id: params.fetch(:id)
+        check_ability_to! :edit, user
 
         attributes =
           permit_attributes(%i[
@@ -67,7 +66,9 @@ class Api
         params: Api::Entities::User.documentation
 
       patch(:reset_password) do
-        user       = Api::Models::User.find id: params.fetch(:id)
+        user = Api::Models::User.find id: params.fetch(:id)
+        check_ability_to! :edit, user
+
         attributes = permit_attributes(%i[new_password new_password_confirmation])
         validation = Api::Validators::Password.new(attributes)
 

@@ -41,6 +41,21 @@ describe 'PUT /api/users/:id' do
         expect(response_born_on).to eq(target_born_on)
         expect(@user.born_on).to eq(target_born_on)
       end
+
+      it 'should refuse to update a different user than the current' do
+        user2 = create :user
+        old_user_name = @user.first_name
+        header 'Access-Token', generate_access_token(user2)
+        new_attributes = {
+          first_name: "Robert",
+          last_name:  "Roberts",
+          born_on:    "2017-03-11T18:52:08.425-03:00"
+        }
+
+        put "api/v1.0/users/#{@user.id}", attributes: new_attributes
+        expect(last_response.status).to be(403)
+        expect(@user.reload.first_name).to eq(old_user_name)
+      end
     end
 
     context 'with invalid data' do
