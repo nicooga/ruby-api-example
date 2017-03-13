@@ -22,7 +22,7 @@ describe 'POST /api/users', type: :controller do
       data = response_body
       user = Api::Models::User.find id: data.fetch(:id)
 
-      VALID_ATTRIBUTES.except(:born_on).each do |attr, value|
+      VALID_ATTRIBUTES.except(:born_on, :password).each do |attr, value|
         expect(data[attr]).to eq(value)
         expect(user.values[attr]).to eq(value)
       end

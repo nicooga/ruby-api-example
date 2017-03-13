@@ -37,6 +37,7 @@ require 'active_support/core_ext'
 
 # require all models
 Dir['./application/models/*.rb'].each { |rb| require rb }
+Dir['./application/entities/*.rb'].each { |rb| require rb }
 Dir['./application/validators/*.rb'].each { |rb| require rb }
 Dir['./application/mailers/**/*.rb'].each { |rb| require rb }
 Dir['./application/api_helpers/**/*.rb'].each { |rb| require rb }

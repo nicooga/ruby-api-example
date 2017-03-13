@@ -11,6 +11,10 @@ class Api
       }
     end
 
+    desc "Creates a new user",
+      entity: Api::Entities::User,
+      params: Api::Entities::User.documentation
+
     post do
       attributes =
         permit_attributes(%i[
@@ -25,12 +29,16 @@ class Api
         user = Api::Models::User.new(attributes)
         user.save
         Api::Mailers::Users.creation_notification(user)
-        user
+        present user, with: Api::Entities::User
       end
     end
 
     route_param(:id) do
       before { authenticate! }
+
+      desc "Updates an user",
+        entity: Api::Entities::User,
+        params: Api::Entities::User.documentation
 
       put do
         user = Api::Models::User.find id: params.fetch(:id)
@@ -48,11 +56,14 @@ class Api
 
         handling_validation(Api::Validators::User.new(new_attributes)) do
           user.update attributes
-          user
+          present user, with: Api::Entities::User
         end
       end
 
-      # For the sake of simplicity, I've used password instead of new_password param.
+      desc "Resets the password of an user",
+        entity: Api::Entities::User,
+        params: Api::Entities::User.documentation
+
       patch(:reset_password) do
         user       = Api::Models::User.find id: params.fetch(:id)
         attributes = permit_attributes(%i[new_password new_password_confirmation])
@@ -61,7 +72,7 @@ class Api
         handling_validation(validation) do
           user = Api::Models::User.find id: params.fetch(:id)
           user.update password: attributes.fetch(:new_password)
-          user.reload
+          present user, with: Api::Entities::User
         end
       end
     end
