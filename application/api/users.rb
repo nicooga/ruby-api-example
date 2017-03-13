@@ -4,6 +4,8 @@ class Api
       includes :basic_search
     end
 
+    desc "Retrieves an user", entity: Api::Entities::User
+
     get do
       users = SEQUEL_DB[:users].all
       {
